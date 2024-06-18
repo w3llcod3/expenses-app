@@ -14,9 +14,9 @@ The project is structured as follows:
 - `lib/`: Contains utility code, such as the Axios instance for making HTTP requests.
 - `constants/`: Contains constant values used throughout the application.
 - `node_modules/`: Contains the project dependencies.
-- `package.`json: Defines the project dependencies and scripts.
-- `tsconfig.`json: Configures the TypeScript compiler.
-- `app.`json: Contains the Expo configuration.
+- `package.json`: Defines the project dependencies and scripts.
+- `tsconfig.json`: Configures the TypeScript compiler.
+- `app.json`: Contains the Expo configuration.
 
 ## Running the Project
 To run the project, use one of the following commands:
