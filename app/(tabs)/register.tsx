@@ -3,7 +3,10 @@ import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIn
 import axios from '@/lib/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function IndexScreen() {
+function RegisterScreen () {
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,17 +17,19 @@ function IndexScreen() {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/login', {
+      const response = await axios.post('/api/users', {
         email,
         password,
       });
 
       const token = response.data.successResult.token;
-      AsyncStorage.setItem('token', token);
+      AsyncStorage.setItem('token', 'token');
       axios.defaults.headers.Authorization = `Bearer ${token}`;
+
+      // navigation.navigate('Index');
     } catch (err) {
-      console.error('Login failed', err);
-      setError('Login failed. Please check your credentials and try again.');
+      console.error('Register failed', err);
+      setError('Register failed. Please check your credentials and try again.');
     }
 
     setLoading(false);
@@ -33,8 +38,24 @@ function IndexScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Expenses Manager</Text>
-      <Text style={styles.subtitle}>Login</Text>
+      <Text style={styles.subtitle}>Let's create a new account</Text>
       <View style={styles.form}>
+        <Text style={styles.label}>First name</Text>
+        <TextInput
+          style={styles.input}
+          value={firstName}
+          onChangeText={(text) => setFirstName(text)}
+          keyboardType="default"
+          autoCapitalize="words"
+        />
+        <Text style={styles.label}>Last name</Text>
+        <TextInput
+          style={styles.input}
+          value={lastName}
+          onChangeText={(text) => setLastName(text)}
+          keyboardType="default"
+          autoCapitalize="words"
+        />
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
@@ -57,8 +78,8 @@ function IndexScreen() {
         ) : (
           <Button title="Login" onPress={handleSubmit} />
         )}
-        <TouchableOpacity /* onPress={() => navigation.navigate('Register')} */>
-          <Text style={styles.link}>Don't have an account? Register</Text>
+        <TouchableOpacity /* onPress={() => navigation.navigate('Index')} */>
+          <Text style={styles.link}>Already have an account? Login</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -118,4 +139,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default IndexScreen;
+export default RegisterScreen;

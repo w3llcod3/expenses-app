@@ -1,35 +1,143 @@
-import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet } from 'react-native';
+import axios from '@/lib/axios';
+import dayjs from 'dayjs';
+import React, { useState } from 'react';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
-
-export default function ModalScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Modal</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/modal.tsx" />
-
-      {/* Use a light status bar on iOS to account for the black space above the modal */}
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-    </View>
-  );
+interface ExpenseModalProps {
+  initialData?: ExpenseData;
+  visible: boolean;
+  onClose: () => void;
 }
 
+interface ExpenseData {
+  id: number;
+  amount: number;
+  category: string;
+  description: string;
+  date: string;
+}
+
+const ExpenseModal = ({ initialData, visible, onClose }: ExpenseModalProps) => {
+  const [id, setId] = useState(initialData?.id || 0);
+  const [amount, setAmount] = useState(initialData?.amount || 0);
+  const [category, setCategory] = useState(initialData?.category || '');
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [date, setDate] = useState(initialData?.date || '');
+
+  const handleSubmit = async () => {
+    let method = '';
+    let payload = {};
+    if (id) {
+      payload = { id, amount, category, description, date: dayjs(date).toISOString() };
+      method = 'PATCH';
+    } else {
+      payload = { amount, category, description, date: dayjs(date).toISOString() };
+      method = 'POST';
+    }
+
+    try {
+      const res = await axios({
+        method,
+        url: '/api/expenses',
+        data: payload,
+      });
+
+      if (res.status === 200 || res.status === 201) {
+        Alert.alert('Success', `Expense ${id ? 'updated' : 'added'} successfully`);
+        onClose();
+      } else {
+        throw new Error('Failed to add/update expense');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add/update expense');
+    }
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalContainer}>
+        <Text style={styles.modalTitle}>{id ? 'Edit Expense' : 'Add Expense'}</Text>
+        <Text style={styles.inputTitle}>Amount</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="100"
+          keyboardType="numeric"
+          value={amount.toString()}
+          onChangeText={(text) => setAmount(parseFloat(text))}
+        />
+        <Text style={styles.inputTitle}>Category</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Buying groceries, etc."
+          value={category}
+          onChangeText={setCategory}
+        />
+        <Text style={styles.inputTitle}>Description</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Description of the expense"
+          value={description}
+          onChangeText={setDescription}
+        />
+        <Text style={styles.inputTitle}>Date</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Date (YYYY-MM-DD)"
+          value={date}
+          onChangeText={setDate}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>{id ? 'Update Expense' : 'Add Expense'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={onClose}>
+          <Text style={styles.buttonText}>Close</Text>
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
+};
+
 const styles = StyleSheet.create({
-  container: {
+  modalContainer: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
+    backgroundColor: 'white',
   },
-  title: {
-    fontSize: 20,
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+  },
+  inputTitle: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: 'white',
     fontWeight: 'bold',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  closeButton: {
+    backgroundColor: '#dc3545',
   },
 });
+
+export default ExpenseModal;
